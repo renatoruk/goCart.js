@@ -1,38 +1,40 @@
-import './scss/go-cart.scss';
-import {formatMoney} from '@shopify/theme-currency/currency';
-import 'whatwg-fetch';
-import serialize from 'form-serialize';
+import "./scss/go-cart.scss";
+import {formatMoney} from "@shopify/theme-currency/currency";
+import "whatwg-fetch";
+import serialize from "form-serialize";
+import {ApiClient} from "./ApiClient";
 
 class GoCart {
 
-    constructor(options) {
+    apiClient = new ApiClient();
 
+    constructor(options) {
         const defaults = {
-            cartModalFail: '.js-go-cart-modal-fail',
-            cartModalFailClose: '.js-go-cart-modal-fail-close',
-            cartModal: '.js-go-cart-modal',
-            cartModalClose: '.js-go-cart-modal-close',
-            cartModalContent: '.js-go-cart-modal-content',
-            cartDrawer: '.js-go-cart-drawer',
-            cartDrawerContent: '.js-go-cart-drawer-content',
-            cartDrawerSubTotal: '.js-go-cart-drawer-subtotal',
-            cartDrawerFooter: '.js-go-cart-drawer-footer',
-            cartDrawerClose: '.js-go-cart-drawer-close',
-            cartMiniCart: '.js-go-cart-mini-cart',
-            cartMiniCartContent: '.js-go-cart-mini-cart-content',
-            cartMiniCartSubTotal: '.js-go-cart-mini-cart-subtotal',
-            cartMiniCartFooter: '.js-go-cart-mini-cart-footer',
-            cartTrigger: '.js-go-cart-trigger',
-            cartOverlay: '.js-go-cart-overlay',
-            cartCount: '.js-go-cart-counter',
-            addToCart: '.js-go-cart-add-to-cart',
-            removeFromCart: '.js-go-cart-remove-from-cart',
-            removeFromCartNoDot: 'js-go-cart-remove-from-cart',
-            itemQuantity: '.js-go-cart-quantity',
-            itemQuantityPlus: '.js-go-cart-quantity-plus',
-            itemQuantityMinus: '.js-go-cart-quantity-minus',
-            cartMode: 'drawer',
-            drawerDirection: 'right',
+            cartModalFail: ".js-go-cart-modal-fail",
+            cartModalFailClose: ".js-go-cart-modal-fail-close",
+            cartModal: ".js-go-cart-modal",
+            cartModalClose: ".js-go-cart-modal-close",
+            cartModalContent: ".js-go-cart-modal-content",
+            cartDrawer: ".js-go-cart-drawer",
+            cartDrawerContent: ".js-go-cart-drawer-content",
+            cartDrawerSubTotal: ".js-go-cart-drawer-subtotal",
+            cartDrawerFooter: ".js-go-cart-drawer-footer",
+            cartDrawerClose: ".js-go-cart-drawer-close",
+            cartMiniCart: ".js-go-cart-mini-cart",
+            cartMiniCartContent: ".js-go-cart-mini-cart-content",
+            cartMiniCartSubTotal: ".js-go-cart-mini-cart-subtotal",
+            cartMiniCartFooter: ".js-go-cart-mini-cart-footer",
+            cartTrigger: ".js-go-cart-trigger",
+            cartOverlay: ".js-go-cart-overlay",
+            cartCount: ".js-go-cart-counter",
+            addToCart: ".js-go-cart-add-to-cart",
+            removeFromCart: ".js-go-cart-remove-from-cart",
+            removeFromCartNoDot: "js-go-cart-remove-from-cart",
+            itemQuantity: ".js-go-cart-quantity",
+            itemQuantityPlus: ".js-go-cart-quantity-plus",
+            itemQuantityMinus: ".js-go-cart-quantity-minus",
+            cartMode: "drawer",
+            drawerDirection: "right",
             displayModal: false,
         };
 
@@ -70,7 +72,7 @@ class GoCart {
     }
 
     get isDrawerMode() {
-        return this.cartMode === 'drawer';
+        return this.cartMode === "drawer";
     }
 
     init() {
@@ -82,14 +84,14 @@ class GoCart {
         }
 
         this.addToCart.forEach((item) => {
-            item.addEventListener('click', (event) => {
+            item.addEventListener("click", (event) => {
                 event.preventDefault();
-                const formID = item.parentNode.getAttribute('id');
+                const formID = item.parentNode.getAttribute("id");
                 this.addItemToCart(formID);
             });
         });
 
-        this.cartTrigger.addEventListener('click', () => {
+        this.cartTrigger.addEventListener("click", () => {
             if (this.isDrawerMode) {
                 this.openCartDrawer();
             } else {
@@ -98,7 +100,7 @@ class GoCart {
             this.openCartOverlay();
         });
 
-        this.cartOverlay.addEventListener('click', () => {
+        this.cartOverlay.addEventListener("click", () => {
             this.closeFailModal();
             this.closeCartModal();
             if (this.isDrawerMode) {
@@ -110,7 +112,7 @@ class GoCart {
         });
 
         if (this.isDrawerMode) {
-            this.cartDrawerClose.addEventListener('click', () => {
+            this.cartDrawerClose.addEventListener("click", () => {
                 this.closeCartDrawer();
                 this.closeCartOverlay();
             });
@@ -118,7 +120,7 @@ class GoCart {
 
         if (this.displayModal) {
             this.cartModalClose.forEach((item) => {
-                item.addEventListener('click', () => {
+                item.addEventListener("click", () => {
                     this.closeFailModal();
                     this.closeCartModal();
                     if (this.isDrawerMode) {
@@ -131,7 +133,7 @@ class GoCart {
             });
         }
 
-        this.cartModalFailClose.addEventListener('click', () => {
+        this.cartModalFailClose.addEventListener("click", () => {
             this.closeFailModal();
             this.closeCartModal();
             if (this.isDrawerMode) {
@@ -145,11 +147,7 @@ class GoCart {
     }
 
     fetchCart(callback) {
-        window.fetch('/cart.js', {
-            credentials: 'same-origin',
-            method: 'GET',
-        })
-            .then((response) => response.json())
+        this.apiClient.get("/cart.js")
             .then((cart) => this.fetchHandler(cart, callback))
             .catch((error) => {
                 this.ajaxRequestFail();
@@ -160,11 +158,11 @@ class GoCart {
     addItemToCart(formID) {
         const form = document.querySelector(`#${formID}`);
         const formData = serialize(form, {hash: true});
-        window.fetch('/cart/add.js', {
-            method: 'POST',
-            credentials: 'include',
+        window.fetch("/cart/add.js", {
+            method: "POST",
+            credentials: "include",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(formData),
         })
@@ -178,12 +176,12 @@ class GoCart {
 
     removeItem(line) {
         const quantity = 0;
-        window.fetch('/cart/change.js', {
-            method: 'POST',
-            credentials: 'same-origin',
+        window.fetch("/cart/change.js", {
+            method: "POST",
+            credentials: "same-origin",
             body: JSON.stringify({quantity, line}),
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         })
             .then((response) => response.json())
@@ -195,12 +193,12 @@ class GoCart {
     }
 
     changeItemQuantity(line, quantity) {
-        window.fetch('/cart/change.js', {
-            method: 'POST',
-            credentials: 'same-origin',
+        window.fetch("/cart/change.js", {
+            method: "POST",
+            credentials: "same-origin",
             body: JSON.stringify({quantity, line}),
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         })
             .then((response) => response.json())
@@ -239,21 +237,21 @@ class GoCart {
         if (this.isDrawerMode) {
             if (cart.item_count === 0) {
                 this.renderBlankCartDrawer();
-                this.cartDrawerFooter.classList.add('is-invisible');
+                this.cartDrawerFooter.classList.add("is-invisible");
             } else {
                 this.renderDrawerCart(cart);
-                this.cartDrawerFooter.classList.remove('is-invisible');
-                if ((typeof callback) === 'function') {
+                this.cartDrawerFooter.classList.remove("is-invisible");
+                if ((typeof callback) === "function") {
                     callback(cart);
                 }
             }
         } else if (cart.item_count === 0) {
             this.renderBlankMiniCart();
-            this.cartMiniCartFooter.classList.add('is-invisible');
+            this.cartMiniCartFooter.classList.add("is-invisible");
         } else {
             this.renderMiniCart(cart);
-            this.cartMiniCartFooter.classList.remove('is-invisible');
-            if ((typeof callback) === 'function') {
+            this.cartMiniCartFooter.classList.remove("is-invisible");
+            if ((typeof callback) === "function") {
                 callback(cart);
             }
         }
@@ -272,7 +270,7 @@ class GoCart {
         this.clearCartModal();
         let productVariant = product.variant_title;
         if (productVariant === null) {
-            productVariant = '';
+            productVariant = "";
         } else {
             productVariant = `(${productVariant})`;
         }
@@ -292,7 +290,7 @@ class GoCart {
         cart.items.forEach((item, index) => {
             let itemVariant = item.variant_title;
             if (itemVariant === null) {
-                itemVariant = '';
+                itemVariant = "";
             }
             const cartSingleProduct = `
         <div class="go-cart-item__single" data-line="${Number(index + 1)}">
@@ -316,27 +314,27 @@ class GoCart {
             this.cartDrawerContent.innerHTML += cartSingleProduct;
         });
         this.cartDrawerSubTotal.innerHTML = formatMoney(cart.total_price);
-        this.cartDrawerSubTotal.parentNode.classList.remove('is-invisible');
+        this.cartDrawerSubTotal.parentNode.classList.remove("is-invisible");
         const removeFromCart = document.querySelectorAll(this.removeFromCart);
         removeFromCart.forEach((item) => {
-            item.addEventListener('click', () => {
+            item.addEventListener("click", () => {
                 GoCart.removeItemAnimation(item.parentNode);
-                const line = item.parentNode.getAttribute('data-line');
+                const line = item.parentNode.getAttribute("data-line");
                 this.removeItem(line);
             });
         });
         const itemQuantityPlus = document.querySelectorAll(this.itemQuantityPlus);
         itemQuantityPlus.forEach((item) => {
-            item.addEventListener('click', () => {
-                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute('data-line');
+            item.addEventListener("click", () => {
+                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute("data-line");
                 const quantity = Number(item.parentNode.querySelector(this.itemQuantity).value) + 1;
                 this.changeItemQuantity(line, quantity);
             });
         });
         const itemQuantityMinus = document.querySelectorAll(this.itemQuantityMinus);
         itemQuantityMinus.forEach((item) => {
-            item.addEventListener('click', () => {
-                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute('data-line');
+            item.addEventListener("click", () => {
+                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute("data-line");
                 const quantity = Number(item.parentNode.querySelector(this.itemQuantity).value) - 1;
                 this.changeItemQuantity(line, quantity);
                 if (Number((item.parentNode.querySelector(this.itemQuantity).value - 1)) === 0) {
@@ -351,7 +349,7 @@ class GoCart {
         cart.items.forEach((item, index) => {
             let itemVariant = item.variant_title;
             if (itemVariant === null) {
-                itemVariant = '';
+                itemVariant = "";
             }
             const cartSingleProduct = `
         <div class="go-cart-item__single" data-line="${Number(index + 1)}">
@@ -375,27 +373,27 @@ class GoCart {
             this.cartMiniCartContent.innerHTML += cartSingleProduct;
         });
         this.cartMiniCartSubTotal.innerHTML = formatMoney(cart.total_price);
-        this.cartMiniCartSubTotal.parentNode.classList.remove('is-invisible');
+        this.cartMiniCartSubTotal.parentNode.classList.remove("is-invisible");
         const removeFromCart = document.querySelectorAll(this.removeFromCart);
         removeFromCart.forEach((item) => {
-            item.addEventListener('click', () => {
+            item.addEventListener("click", () => {
                 GoCart.removeItemAnimation(item.parentNode);
-                const line = item.parentNode.getAttribute('data-line');
+                const line = item.parentNode.getAttribute("data-line");
                 this.removeItem(line);
             });
         });
         const itemQuantityPlus = document.querySelectorAll(this.itemQuantityPlus);
         itemQuantityPlus.forEach((item) => {
-            item.addEventListener('click', () => {
-                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute('data-line');
+            item.addEventListener("click", () => {
+                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute("data-line");
                 const quantity = Number(item.parentNode.querySelector(this.itemQuantity).value) + 1;
                 this.changeItemQuantity(line, quantity);
             });
         });
         const itemQuantityMinus = document.querySelectorAll(this.itemQuantityMinus);
         itemQuantityMinus.forEach((item) => {
-            item.addEventListener('click', () => {
-                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute('data-line');
+            item.addEventListener("click", () => {
+                const line = item.parentNode.parentNode.parentNode.parentNode.getAttribute("data-line");
                 const quantity = Number(item.parentNode.querySelector(this.itemQuantity).value) - 1;
                 this.changeItemQuantity(line, quantity);
                 if (Number((item.parentNode.querySelector(this.itemQuantity).value - 1)) === 0) {
@@ -406,71 +404,71 @@ class GoCart {
     }
 
     renderBlankCartDrawer() {
-        this.cartDrawerSubTotal.parentNode.classList.add('is-invisible');
+        this.cartDrawerSubTotal.parentNode.classList.add("is-invisible");
         this.clearCartDrawer();
-        this.cartDrawerContent.innerHTML = '<div class="go-cart__empty">Your Cart is currenty empty!</div>';
+        this.cartDrawerContent.innerHTML = "<div class=\"go-cart__empty\">Your Cart is currenty empty!</div>";
     }
 
     renderBlankMiniCart() {
-        this.cartMiniCartSubTotal.parentNode.classList.add('is-invisible');
+        this.cartMiniCartSubTotal.parentNode.classList.add("is-invisible");
         this.clearMiniCart();
-        this.cartMiniCartContent.innerHTML = '<div class="go-cart__empty">Your Cart is currenty empty!</div>';
+        this.cartMiniCartContent.innerHTML = "<div class=\"go-cart__empty\">Your Cart is currenty empty!</div>";
     }
 
     clearCartDrawer() {
-        this.cartDrawerContent.innerHTML = '';
+        this.cartDrawerContent.innerHTML = "";
     }
 
     clearMiniCart() {
-        this.cartMiniCartContent.innerHTML = '';
+        this.cartMiniCartContent.innerHTML = "";
     }
 
     clearCartModal() {
-        this.cartModalContent.innerHTML = '';
+        this.cartModalContent.innerHTML = "";
     }
 
     openCartDrawer() {
-        this.cartDrawer.classList.add('is-open');
+        this.cartDrawer.classList.add("is-open");
     }
 
     closeCartDrawer() {
-        this.cartDrawer.classList.remove('is-open');
+        this.cartDrawer.classList.remove("is-open");
     }
 
     openMiniCart() {
-        this.cartMiniCart.classList.add('is-open');
+        this.cartMiniCart.classList.add("is-open");
     }
 
     closeMiniCart() {
-        this.cartMiniCart.classList.remove('is-open');
+        this.cartMiniCart.classList.remove("is-open");
     }
 
     openFailModal() {
-        this.cartModalFail.classList.add('is-open');
+        this.cartModalFail.classList.add("is-open");
     }
 
     closeFailModal() {
-        this.cartModalFail.classList.remove('is-open');
+        this.cartModalFail.classList.remove("is-open");
     }
 
     openCartModal() {
-        this.cartModal.classList.add('is-open');
+        this.cartModal.classList.add("is-open");
     }
 
     closeCartModal() {
-        this.cartModal.classList.remove('is-open');
+        this.cartModal.classList.remove("is-open");
     }
 
     openCartOverlay() {
-        this.cartOverlay.classList.add('is-open');
+        this.cartOverlay.classList.add("is-open");
     }
 
     closeCartOverlay() {
-        this.cartOverlay.classList.remove('is-open');
+        this.cartOverlay.classList.remove("is-open");
     }
 
     static removeItemAnimation(item) {
-        item.classList.add('is-invisible');
+        item.classList.add("is-invisible");
     }
 
     setDrawerDirection() {
